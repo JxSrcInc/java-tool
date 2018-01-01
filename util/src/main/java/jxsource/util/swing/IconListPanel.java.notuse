@@ -1,0 +1,50 @@
+package jxsource.util.swing;
+
+import javax.swing.JPanel;
+
+public class IconListPanel extends JPanel
+{	GridLayout listLayout;
+	static final int defaultIconWidth = 40;
+	static final int defaultIconHeight = 40;
+	int iconWidth;
+	int iconHeight;
+	static final int defaultColumns = 5;
+//	int columns;
+	static final int defalutRows = 0;
+//	int rows;
+	Dimension size;
+
+	public IconListPanel()
+	{	this(	IconListPanel.defaultIconWidth,
+					IconListPanel.defaultIconHeight,
+					IconListPanel.defaultRows,
+					IconListPanel.defaultColumns);
+	}
+
+	public IconListPanel(int iconW, int iconH, int rows, int columns)
+	{	super(listLayout = new GridLayout(rows, columns, 0, 0, iconW, iconH);
+		setIconSize(iconW, iconH);
+	}
+
+	public void setIconSize(int w, int h)
+	{	iconWidth = w;
+		iconHeight = h;
+	}
+
+	private Dimension createSize()
+	{	int columns = listLayout.getColumns()
+			return
+		Insets insets = getInsets();
+		int w = iconWidth * columns + listLayout.getHgap() * Math.max(0, columns - 1) + insets.left + insets.right;
+		int h = iconHeight * rows + listLayout.getVgap() * Math.max(0, rows - 1) + insets.top + insets.bottom;
+		return (size = new Dimension(w,h));
+	}
+
+	public Dimension getSize()
+	{	return size;
+	}
+
+	public Dimension getPreferredSize()
+	{	return size;
+	}
+

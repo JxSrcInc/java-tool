@@ -1,0 +1,11 @@
+package jxsource.media.image;
+
+import java.rmi.*;
+import java.awt.Color;
+
+public interface ImageLoadListener extends Remote
+{	public void complete(boolean complete, String id, String imagePath) throws RemoteException;
+	public int getImageWidth() throws RemoteException;
+	public int getImageHeight() throws RemoteException;
+	public Color getBackground() throws RemoteException;
+}

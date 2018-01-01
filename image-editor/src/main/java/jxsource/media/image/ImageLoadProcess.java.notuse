@@ -1,0 +1,140 @@
+package jxsource.media.image;
+
+import java.rmi.*;
+import java.io.*;
+import java.awt.image.*;
+import java.awt.*;
+import jxopen.io.RandomAccessFileManager;
+import java.awt.Color;
+import com.sun.image.codec.jpeg.*;
+import jxopen.util.bytetool.*;
+
+public class ImageLoadProcess implements ImageObserver
+{ ImageLoadListener imageLoadListener;
+	String path;
+	int imageWidth = 351;
+	int imageHeight = 288;
+	Color background;
+	String id;
+	Image image;
+
+	public ImageLoadProcess(String rmiLookupName, String path)
+	{	try
+		{	imageLoadListener = (ImageLoadListener) Naming.lookup(rmiLookupName);
+			id = rmiLookupName;
+			this.path = path;
+			imageWidth = imageLoadListener.getImageWidth();
+			imageHeight = imageLoadListener.getImageHeight();
+//			background = imageLoadListener.getBackground();
+//System.out.println(background);
+		} catch(Exception e)
+		{	e.printStackTrace();
+		}
+	}
+
+	public void go()
+	{	try
+		{	String loadingPath = RandomAccessFileManager.getRandomAccessFileManager().create(path,"r",false);
+System.out.println("***");
+			image = Toolkit.getDefaultToolkit().createImage(loadingPath);
+			if(!ImageUtilities.waitForImage(image))
+				fail();
+//			if(image.getWidth(this) == -1 || image.getHeight(this) == -1)
+//				return;
+			checkSize();
+			complete();
+		} catch(Exception e)
+		{	e.printStackTrace();
+			fail();
+		}
+	}
+
+	private void fail()
+	{	try
+		{	imageLoadListener.complete(false, id, path);
+		} catch(Exception e) {}
+		System.exit(1);
+	}
+
+		public boolean imageUpdate(Image img, int infoflags,
+			int x, int y, int width, int height)
+	{	
+//System.out.println("?? "+infoflags);
+		if((infoflags & ImageObserver.ERROR) != 0)
+		{	System.out.println("Error loading image");
+//			fail();
+			return false;
+		}
+		if( (infoflags & ImageObserver.WIDTH) != 0 &&
+				(infoflags & ImageObserver.HEIGHT) != 0)
+		{
+System.out.println("W & H");
+			checkSize();
+		}
+		if((infoflags & ImageObserver.PROPERTIES) != 0)
+		{	System.out.println("PROPERTIES");
+			return true;
+		}
+		if((infoflags & ImageObserver.FRAMEBITS) != 0)
+		{	// if FRAMBITS (demo/jfc/java2D/image/duke.running.gif), only first frame is process.
+			// pending solution
+			complete();
+System.out.println("FRAMEBITS");
+		}
+		if((infoflags & ImageObserver.ALLBITS) != 0)
+		{	
+System.out.println("ALLBITS");
+			complete();
+			return false;
+		}
+		if((infoflags & ImageObserver.SOMEBITS) != 0)
+		{	
+System.out.println("SOMEBITS");
+//			complete();
+//			return true;
+		}
+		return true;
+	}
+
+	private void success(String imagePath)
+	{	
+System.out.println("Success");
+		try
+		{	imageLoadListener.complete(true, id, imagePath);
+		} catch(Exception e) {}
+		System.exit(0);
+	}
+
+	private void checkSize()
+	{
+System.out.println("checkSize");	
+		if(image.getWidth(null) <= imageWidth && image.getHeight(null) <= imageHeight)
+			success(path);
+	}
+		
+
+	private void complete()
+	{ try
+		{	
+			BufferedImage outImage = ImageUtilities.makeBufferedImage(ImageUtilities.resizeImage(image,imageWidth,imageHeight));
+System.out.println(imageWidth+","+outImage.getWidth(null));
+			File imageFile = File.createTempFile("jxs",".jpg");
+			OutputStream out = new FileOutputStream(imageFile);
+			JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
+			encoder.encode(outImage);
+			out.flush();
+			out.close();
+			success(imageFile.getPath());
+		} catch(Exception e)
+		{	e.printStackTrace();
+			fail();
+		}
+	}
+	
+
+	public static void main(String[] args)
+	{	ImageLoadProcess ilp = new ImageLoadProcess(args[0], args[1]);
+		ilp.go();
+	}
+
+}

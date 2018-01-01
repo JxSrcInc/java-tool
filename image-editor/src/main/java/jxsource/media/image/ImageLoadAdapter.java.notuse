@@ -1,0 +1,146 @@
+package jxsource.media.image;
+
+import java.rmi.*;
+import java.rmi.server.*;
+import jxsource.util.rmi.*;
+import java.awt.Color;
+
+public class ImageLoadAdapter extends UnicastRemoteObject implements ImageLoadListener
+{	boolean ready = false;
+	LoadingThread loadingThread;
+	String imagePath, iconPath;
+//	boolean complete;
+	String rmiName;			
+	int waitTime = 60;
+	int imageWidth = 768;
+	int imageHeight = 576;
+	Color background = Color.lightGray;
+
+	public ImageLoadAdapter() throws Exception
+	{ RmiRegistryStarter rrs = RmiRegistryStarter.getRmiRegistryStarter();
+		rrs.startRMIRegistry();
+		rmiName = rrs.getRMIRegistryHost()+Constants.RMI_IMAGE_LOADER_LISTENER+Integer.toString(hashCode());
+		Naming.rebind(rmiName,this);
+//		loadingThread = new LoadingThread();
+		ready = true;
+		System.out.println("ImageLoadAdapter ready.");
+	}
+
+	public String getRmiLookupName()
+	{	return "rmi:"+rmiName;
+	}
+
+	public void setWaitTime(int time)
+	{	waitTime = time;
+	}
+
+	public synchronized String getTempImageFilePath(String path)
+	{	imagePath = path;
+//		complete = false;
+		if(ready)
+		{	loadingThread = new LoadingThread();
+			loadingThread.setPath(path);
+			loadingThread.start();
+			try
+			{	loadingThread.join();
+				// if here, imagePath and iconPath are replaced in loadingThread
+			} catch(Exception e)
+			{
+			}
+		}
+		return imagePath;
+	}	
+
+	public void clear()
+	{	try
+		{ Naming.unbind(rmiName);
+		} catch(Exception e) {e.printStackTrace();}
+	}
+
+	public void complete(boolean complete, String id, String imagePath) throws RemoteException
+	{ System.out.println("ImageLoadAdapter.complete: "+complete+","+imagePath);
+		if(id.equals(getRmiLookupName()))
+		{ if(complete)
+			{	this.imagePath = imagePath;
+				if(loadingThread.isAlive())
+					loadingThread.interrupt();
+//				complete = true;
+			}
+		}
+	}
+
+	public int getImageWidth() throws RemoteException
+	{	return imageWidth;
+	}
+
+	public int getImageHeight() throws RemoteException
+	{	return imageHeight;
+	}
+
+	public int getDefaultImageWidth() 
+	{	return imageWidth;
+	}
+
+	public int getDefaultImageHeight()
+	{	return imageHeight;
+	}
+
+	public Color getBackground() throws RemoteException
+	{	return background;
+	}
+
+	public void setImageWidth(int w)
+	{	imageWidth = w;
+	}
+
+	public void setImageHeight(int h) 
+	{	imageHeight = h;
+	}
+
+	public void setBackground(Color color) 
+	{	background = color;
+	}
+
+	class LoadingThread extends Thread
+	{	String path;
+
+		public void setPath(String path)
+		{	this.path = path;
+		}
+
+		public void run()
+		{	String fileSeparator = System.getProperties().getProperty("file.separator");
+			String java = System.getProperties().getProperty("java.home")+
+									fileSeparator+"bin"+fileSeparator+"java";
+			if(java.indexOf(' ') > 0)
+				java = "\""+java+"\"";
+			String cmdarray = java + 
+				" -cp "+System.getProperty("java.class.path") + " jxsource/media/image/ImageLoadProcess "+getRmiLookupName()+" "+path;
+			try
+			{	Runtime.getRuntime().exec(cmdarray);
+				int i = 0;
+				while(i++ < waitTime)
+				{	Thread.currentThread().sleep(1000);
+				}
+			} catch(InterruptedException ie)
+			{
+			}	catch(Exception e)
+			{	e.printStackTrace();
+			}
+		}
+	}
+
+	public static void main(String[] args)
+	{	try
+		{	ImageLoadAdapter ilm = new ImageLoadAdapter();
+			for(int i=0; i<args.length; i++)
+			System.out.println(ilm.getTempImageFilePath(args[i]));
+		} catch(Exception e)
+		{	e.printStackTrace();
+		}
+	}
+}
+	
+
+
+

@@ -14,7 +14,10 @@ public class ZipSearchEngin extends SearchEngin {
 	public void search(ZipInputStream zis) throws ZipException, IOException {
         ZipEntry entry;
         while((entry = zis.getNextEntry())!=null) {
+        	if(entry.isDirectory()) 
+        		continue;
         	ZipFile zipFile = new ZipFile(entry);
+        	consum(zipFile);
         }
         zis.close();
 	}

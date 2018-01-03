@@ -4,6 +4,12 @@ import jxsource.tool.folder.search.JFile;
 
 public class ExtFilter extends Filter{
 	String[] exts;
+	public ExtFilter(String[] exts) {
+		for(int i=0; i<exts.length; i++) {
+			exts[i] = exts[i].trim();
+		}
+		this.exts = exts;
+	}
 	public ExtFilter(String exts) {
 		exts = exts.replaceAll(" ", "");
 		this.exts = exts.split(",");

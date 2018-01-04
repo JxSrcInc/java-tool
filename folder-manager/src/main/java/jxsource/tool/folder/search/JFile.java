@@ -13,7 +13,7 @@ public abstract class JFile {
 	}
 	public void setPath(String path) {
 		this.path = path;
-		int i = path.lastIndexOf('\\');
+		int i = path.lastIndexOf('/');
 		if(i > 2) {
 			name = path.substring(i+1);
 		} else {

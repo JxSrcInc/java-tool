@@ -1,63 +1,95 @@
-package jxsource.tool.folder.search;
+package jxsource.tool.folder.search.template;
 
-import java.io.File;
-import java.util.List;
+import static org.junit.Assert.assertNotNull;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.FeatureMatcher;
-import org.hamcrest.Matcher;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.equalTo;
-import jxsource.tool.folder.search.action.CollectionAction;
-import jxsource.tool.folder.search.action.FilePrintAction;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jxsource.tool.folder.search.filter.ExtFilter;
+import jxsource.tool.folder.search.filter.FullNameFilter;
+import jxsource.tool.folder.search.filter.NameFilter;
 
-public class SysSearchEnginTest {
-//	public static Matcher<JFile> fileExt(Matcher<? super String> matcher) {
-//	    return new FeatureMatcher<JFile, String>(matcher, "a String of length that", "length") {
-//	        @Override
-//	        protected boolean featureValueOf(JFile actual) {
-//	            return actual.getName();
-//	        }
-//	    };
-//	}
-	private Matcher<JFile> hasExt(final String exts) {
-		   return new BaseMatcher<JFile>() {
-		      public boolean matches(final Object item) {
-		         final JFile f = (JFile) item;
-		         return exts.indexOf(f.getExt()) >= 0 || f.isDirectory();//i == foo.getNumber();
-		      }
-		   
-		      public void describeTo(final Description description) {
-		         description.appendText("getName should return ").appendValue(exts);
-		      }
-		      public void describeMismatch(final Object item, final
-		Description description) {
-		         description.appendText("was").appendValue(((JFile) item).getName());
-		     }
-		   };
-		}
-	@Test
-	public void test() {
-		String root = ".";
-		SysSearchEngin engin = new SysSearchEngin();
-		CollectionAction ca = new CollectionAction();
-		ca.setUrl(root);
-		engin.addAction(ca);
-		engin.setFilter(new ExtFilter("java, class"));
-		engin.search(new File(root));
-		System.out.println(ca);
-		assertThat(root, is(ca.getUrl()));
-		List<JFile> files = ca.getFiles();
-		for(JFile f: files) {
-			assertThat(f, hasExt("java, class"));			
-		}
+public class ZipSearchTemplateTest {
+	private Logger log = LoggerFactory.getLogger(ZipSearchTemplateTest.class);
+	ZipReportAssert zipReportAssert;
+	
+	@Before
+	public void init() {
+		zipReportAssert = new ZipReportAssert();
 	}
-
+	@Test
+	@Ignore
+	public void builderTest() {
+		assertNotNull(ZipSearchTemplate.getBuilder());
+	}
+	
+	@Test
+	public void defaultTemplateTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipReport(zipReportAssert).build();
+		zst.run();
+	}
+	
+	@Test
+	public void extFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+			.setZipFilter(new ExtFilter("class"))
+			.setZipReport(zipReportAssert.setExt("class"))
+			.build();
+		zst.run();		
+	}
+	@Test
+	public void fullnameFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipFilter(new FullNameFilter().add("Filter.class"))
+				.setZipReport(zipReportAssert.setName("Filter")) // ZipReportAssert removes extension from name 
+				.build();
+			zst.run();		
+	}
+	@Test
+	public void nameFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipFilter(new NameFilter().add("Filter"))
+				.setZipReport(zipReportAssert.setName("Filter"))
+				.build();
+			zst.run();		
+	}
+	@Test
+	public void ignoreCaseNameFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipFilter(new NameFilter().add("filter").setIgnoreCase(true))
+				.setZipReport(zipReportAssert.setName("Filter"))
+				.build();
+			zst.run();		
+	}	
+	@Test
+	public void likeNameFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipFilter(new NameFilter().add("Template").setLike(true))
+				.setZipReport(zipReportAssert.setName("Template, ZipSearchTemplate, ZipSearchTemplateTest"))
+				.build();
+			zst.run();		
+		log.error(zipReportAssert.getFound().toString());
+		// found more than checked.
+		assertThat(zipReportAssert.getFound().size(), greaterThanOrEqualTo(3));
+	}	
+	@Test
+	public void pathFilterTest() {
+		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
+				.setZipFilter(new NameFilter().add("Template").setLike(true))
+				.setZipReport(zipReportAssert.setName("Template, ZipSearchTemplate, ZipSearchTemplateTest"))
+				.build();
+			zst.run();		
+		log.debug(zipReportAssert.getFound().toString());
+		// found more than checked.
+		assertThat(zipReportAssert.getFound().size(), greaterThanOrEqualTo(3));
+	}		
+	
 }

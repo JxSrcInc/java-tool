@@ -43,7 +43,7 @@ public class ZipSearchTemplate implements Template{
 	public static ZipSearchTemplateBuilder getBuilder() {
 		return new ZipSearchTemplateBuilder();
 	}
-	static class ZipSearchTemplateBuilder {
+	public static class ZipSearchTemplateBuilder {
 		File rootDir = new File(System.getProperty("user.dir"));
 		Filter zipFilter;
 		ZipReport zipReport;

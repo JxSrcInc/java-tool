@@ -14,4 +14,11 @@ public class Util {
 		}
 		return false;
 	}
+	public static String[] toArray(String src) {
+		String[] array = src.split(",");
+		for(int i=0; i<array.length; i++) {
+			array[i] = array[i].trim();
+		}
+		return array;
+	}
 }

@@ -11,16 +11,19 @@ import jxsource.tool.folder.search.JFile;
 public class NameFilter extends FullNameFilter {
 	
 	@Override
-	public boolean _accept(JFile file) {
+	public int _accept(JFile file) {
+		if(file.isDirectory()) {
+			return Filter.PASS;
+		}
 		String name = file.getName();
 		int i = name.indexOf('.');
 		name = name.substring(0, i);
 		for(String match: matchs) {
 			if(_accept(name, match)) {
-				return true;
+				return Filter.ACCEPT;
 			}
 		}
-		return false;
+		return Filter.REJECT;
 	}
 
 }

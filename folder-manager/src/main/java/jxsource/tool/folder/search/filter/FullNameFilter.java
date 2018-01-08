@@ -21,14 +21,17 @@ public class FullNameFilter extends AbstractNameFilter {
 		return add(multiMatch.split(","));
 	}
 	@Override
-	public boolean _accept(JFile file) {
+	public int _accept(JFile file) {
+		if(file.isDirectory()) {
+			return Filter.PASS;
+		}
 		String name = file.getName();
 		for(String match: matchs) {
 			if(_accept(name, match)) {
-				return true;
+				return Filter.ACCEPT;
 			}
 		}
-		return false;
+		return Filter.REJECT;
 	}
 
 }

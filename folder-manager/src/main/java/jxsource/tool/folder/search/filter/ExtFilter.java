@@ -15,9 +15,9 @@ public class ExtFilter extends Filter{
 		this.exts = exts.split(",");
 	}
 	
-	public boolean _accept(JFile f) {
+	public int _accept(JFile f) {
 		if(f.isDirectory()) {
-			return true;
+			return Filter.PASS;
 		}
 		String name = f.getName();
 		int index = name.lastIndexOf('.');
@@ -25,11 +25,11 @@ public class ExtFilter extends Filter{
 			String ext = name.substring(index+1);
 			for(String match: exts) {
 				if(ext.equals(match)) {
-					return true;
+					return Filter.ACCEPT;
 				}
 			}
 		}
-		return false;
+		return Filter.REJECT;
 	}
 
 }

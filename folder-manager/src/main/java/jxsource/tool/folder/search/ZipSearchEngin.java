@@ -10,16 +10,39 @@ import jxsource.tool.folder.search.action.FilePrintAction;
 import jxsource.tool.folder.search.filter.ExtFilter;
 
 public class ZipSearchEngin extends SearchEngin {
-	
+
 	public void search(ZipInputStream zis) throws ZipException, IOException {
-        ZipEntry entry;
-        while((entry = zis.getNextEntry())!=null) {
-        	if(entry.isDirectory()) 
-        		continue;
-        	ZipFile zipFile = new ZipFile(entry);
-        	consum(zipFile);
-        }
-        zis.close();
+		ZipEntry entry;
+		ZipFile parentNode = null;
+		boolean ok = true;
+		while ((entry = zis.getNextEntry()) != null) {
+			// if(entry.isDirectory())
+			// continue;
+			ZipFile currNode = new ZipFile(entry);
+			if (parentNode == null) {
+				ok = consum(currNode, parentNode);
+			} else {
+				if(currNode.getPath().contains(parentNode.getPath()) && ok) {
+					// process children only if parent is ACCEPT or PASS
+					ok = consum(currNode, parentNode);
+				} else {
+					// currNode is not child of parentNode
+					ok = consum(currNode, parentNode);
+				}
+			}
+		}
+
+		zis.close();
+	}
+	
+	private boolean consum(ZipFile currNode, ZipFile parentNode) {
+		if (consum(currNode)) {
+			parentNode = currNode;
+			return true;
+		} else {
+			return false;
+		}
+		
 	}
 
 }

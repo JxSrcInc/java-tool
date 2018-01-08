@@ -13,16 +13,9 @@ import org.junit.Test;
 
 import jxsource.tool.folder.search.action.CollectionAction;
 import jxsource.tool.folder.search.filter.ExtFilter;
+import jxsource.tool.folder.search.filter.PathFilter;
 
 public class SysSearchEnginTest {
-//	public static Matcher<JFile> fileExt(Matcher<? super String> matcher) {
-//	    return new FeatureMatcher<JFile, String>(matcher, "a String of length that", "length") {
-//	        @Override
-//	        protected boolean featureValueOf(JFile actual) {
-//	            return actual.getName();
-//	        }
-//	    };
-//	}
 	private Matcher<JFile> hasExt(final String exts) {
 		   return new BaseMatcher<JFile>() {
 		      public boolean matches(final Object item) {
@@ -52,6 +45,21 @@ public class SysSearchEnginTest {
 		List<JFile> files = ca.getFiles();
 		for(JFile f: files) {
 			assertThat(f, hasExt("java, class"));			
+		}
+	}
+	@Test
+	public void pathFilterTest() {
+		String root = ".";
+		SysSearchEngin engin = new SysSearchEngin();
+		CollectionAction ca = new CollectionAction();
+		ca.setUrl(root);
+		engin.addAction(ca);
+		engin.setFilter(new PathFilter("**/*.class"));
+		engin.search(new File(root));
+		assertThat(root, is(ca.getUrl()));
+		List<JFile> files = ca.getFiles();
+		for(JFile f: files) {
+			assertThat(f, hasExt("java"));			
 		}
 	}
 

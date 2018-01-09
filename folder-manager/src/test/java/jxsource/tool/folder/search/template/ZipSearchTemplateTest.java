@@ -76,7 +76,7 @@ public class ZipSearchTemplateTest {
 				.setZipReport(zipReportAssert.setName("Template, ZipSearchTemplate, ZipSearchTemplateTest"))
 				.build();
 			zst.run();		
-		log.debug(zipReportAssert.getFound());
+		log.error(zipReportAssert.getFound());
 		// found more than checked.
 		assertThat(zipReportAssert.getFound().size(), greaterThanOrEqualTo(3));
 	}	

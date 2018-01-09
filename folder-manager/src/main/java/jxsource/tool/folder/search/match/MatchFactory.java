@@ -6,7 +6,7 @@ public class MatchFactory {
 		if(value.contains(",")) {
 			match = new MultiMatch();
 			match.init(value, ignoreCase);
-		}
+		} else
 		if(value.equals("**")) {
 			match = new AnyMatch();
 			match.init(value, ignoreCase);

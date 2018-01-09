@@ -17,7 +17,9 @@ public class NameFilter extends FullNameFilter {
 		}
 		String name = file.getName();
 		int i = name.indexOf('.');
-		name = name.substring(0, i);
+		if(i > 0) {
+			name = name.substring(0, i);
+		}
 		for(String match: matchs) {
 			if(_accept(name, match)) {
 				return Filter.ACCEPT;

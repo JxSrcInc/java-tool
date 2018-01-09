@@ -3,6 +3,10 @@ package jxsource.tool.folder.search.match;
 public class MultiMatch extends Match{
 
 	Match[] matches;
+	
+	public Match[] getMatches() {
+		return matches;
+	}
 	@Override
 	void init(String match, boolean ignoreCase) {
 		String[] array = match.split(",");

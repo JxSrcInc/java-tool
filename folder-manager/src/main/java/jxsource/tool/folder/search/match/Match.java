@@ -6,6 +6,9 @@ public abstract class Match {
 	protected boolean ignoreCase;
 	protected String match;
 	
+	public String getMatch() {
+		return match;
+	}
 	/**
 	 * must create in MatchFactory
 	 * and call setMatch() to set match value
@@ -22,6 +25,11 @@ public abstract class Match {
 		} else {
 			return match(nodeName, match);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return match;
 	}
 	
 	/**

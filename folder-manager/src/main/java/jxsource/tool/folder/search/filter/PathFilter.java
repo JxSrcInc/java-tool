@@ -12,7 +12,7 @@ public class PathFilter extends Filter{
 	}
 	@Override
 	public int _accept(JFile file) {
-		PathFilterProcessor pfp = new PathFilterProcessor(matches);
+		PathMatcher pfp = new PathMatcher(matches);
 		return pfp.start(file);
 	}
 

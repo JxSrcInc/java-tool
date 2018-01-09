@@ -11,16 +11,24 @@ import jxsource.tool.folder.search.match.AnyMatch;
 import jxsource.tool.folder.search.match.Match;
 import jxsource.tool.folder.search.template.ZipSearchTemplateTest;
 
-public class PathFilterProcessor {
-	private Logger log = Logger.getLogger(PathFilterProcessor.class);
+public class PathMatcher {
+	public static final int NotMatch = -1;
+	public static final int Unknown = 0;
+	// match and matches.length == nodes.length
+	public static final int Match = 1;
+	// match and matches.lennth > nodes.length -- nodes is part of matches
+	public static final int UnderMatch = 2;
+	// match and matches.length < nodes.length -- nodes contains all elements of matches
+	public static final int OverMatch = 3;
+	private Logger log = Logger.getLogger(PathMatcher.class);
 	private Match[] matches;
 	private String[] nodes;
 
-	public PathFilterProcessor(Match[] matches) {
+	public PathMatcher(Match[] matches) {
 		
 		this.matches = matches;
 	}
-	public PathFilterProcessor(Match[] matches, String[] nodes) {
+	public PathMatcher(Match[] matches, String[] nodes) {
 		this.matches = matches;
 		this.nodes = nodes;
 	}
@@ -39,7 +47,26 @@ public class PathFilterProcessor {
 			list.add(st.nextToken());
 		}
 		nodes = list.toArray(new String[list.size()]);
-		return recursiveProc(0, 0);
+		switch(recursiveProc(0, 0)) {
+		case NotMatch:
+			return Filter.REJECT;
+		case Unknown:
+			if(file.isDirectory()) {
+				return Filter.PASS;
+			} else {
+				return Filter.REJECT;
+			}
+		case Match:
+			return Filter.ACCEPT;
+		case UnderMatch:
+			// JFile is directory on the match path
+			return Filter.PASS;
+		case OverMatch:
+			// JFile is child (sub-directory or file) of match path 
+			return Filter.ACCEPT;
+		default:
+			throw new RuntimeException("Unknown return value of PathMatch.recursiveProc");
+	}
 	}
 	public int recursiveProc(int mIndex, int nIndex) {
 		if (matches[mIndex] instanceof AnyMatch) {
@@ -49,7 +76,7 @@ public class PathFilterProcessor {
 			while (!match.match(node)) {
 				if (endNodes(nIndex)) {
 					// end of JFile path and no match
-					return Filter.REJECT;
+					return Unknown;
 				} else {
 					// match next node
 					node = nodes[++nIndex];
@@ -57,26 +84,22 @@ public class PathFilterProcessor {
 			}
 		} else 
 		if(!matches[mIndex].match(nodes[nIndex])) {
-			return Filter.REJECT;
+			return NotMatch;
 		}
 		// Match[mIndex] matches String[nIndex]
-		if(endNodes(nIndex)) {
-			if(endMatches(mIndex)) {
-				// final match
-				log.debug("accept: "+matches[mIndex]+", "+nodes[nIndex]);
-				return Filter.ACCEPT;
-			} else {
-				// JFile is a mid point of match path
-				return Filter.PASS;
-			}
+		if(!endMatches(mIndex) && !endNodes(nIndex)) {
+			return recursiveProc(mIndex+1, nIndex+1);
+		} else 
+		if(endMatches(mIndex) && endNodes(nIndex)) {
+			// final match
+			return Match;
+		} else
+		if(!endMatches(mIndex)) {
+			return UnderMatch;
 		} else {
-			if(endMatches(mIndex)) {
-				// filter path points to directory?
-				log.debug("accept: "+matches[mIndex]+", "+nodes[nIndex]);
-				return Filter.ACCEPT;
-			} else {
-				return recursiveProc(mIndex+1, nIndex+1);
-			}
+			// OverMatch
+			return OverMatch;
 		}
+			
 	}
 }

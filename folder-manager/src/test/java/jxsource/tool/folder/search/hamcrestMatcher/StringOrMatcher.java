@@ -7,11 +7,11 @@ import org.hamcrest.Description;
 
 import jxsource.tool.folder.search.JFile;
 
-public class StringArrayMatcher extends BaseMatcher<String> {
+public class StringOrMatcher extends BaseMatcher<String> {
 
 	private String[] matchArray;
 	
-	public StringArrayMatcher(String[] matchValue) {
+	public StringOrMatcher(String[] matchValue) {
 		this.matchArray = matchValue;
 	}
     public boolean matches(final Object item) {

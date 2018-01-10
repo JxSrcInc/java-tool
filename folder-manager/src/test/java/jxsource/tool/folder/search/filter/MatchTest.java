@@ -36,10 +36,10 @@ public class MatchTest {
 		assertThat(match[1], instanceOf(RegexMatch.class));
 		assertThat(match[2], instanceOf(MultiMatch.class));
 		MultiMatch multiMatch = (MultiMatch) match[2];
-		assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createMatcher(".java, .class"))));
-		assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createMatcher(".java, .class, extra"))));
+		assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createStringOrMatcher(".java, .class"))));
+		assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createStringOrMatcher(".java, .class, extra"))));
 		try {
-			assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createMatcher(".java"))));
+			assertThat(Arrays.asList(multiMatch.getMatches()), everyItem(hasProperty("match", MatcherFactory.createStringOrMatcher(".java"))));
 		} catch(AssertionError e) {
 			// TODO: handle Throwable
 			//e.printStackTrace();

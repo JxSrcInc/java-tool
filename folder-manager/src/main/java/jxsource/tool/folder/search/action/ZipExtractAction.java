@@ -3,6 +3,9 @@ package jxsource.tool.folder.search.action;
 import java.io.FileInputStream;
 import java.util.zip.ZipInputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import jxsource.tool.folder.search.JFile;
 import jxsource.tool.folder.search.ZipSearchEngin;
 import jxsource.tool.folder.search.filter.Filter;
@@ -13,15 +16,17 @@ import jxsource.tool.folder.search.util.ZipReport;
  * called by ZipSearchEngin 
  */
 public class ZipExtractAction implements Action {
+	Logger log = LogManager.getLogger(ZipExtractAction.class);
 	private Filter filter;
 	private ZipReport report;
 
 	/**
 	 */
 	public void proc(JFile f) {
-		//  Because ZipSearchEngin use extFilter, the parameter can be a directory
+		// Because ZipSearchEngin use extFilter, the parameter can be a directory
 		// Use if condition to filter those directories.
 		if (Util.isArchive(f)) {
+			log.debug("search "+f.getPath());
 			String url = f.getPath();
 			CollectionAction ca = new CollectionAction();
 			try {

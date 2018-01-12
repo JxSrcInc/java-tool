@@ -18,7 +18,7 @@ public class ZipSearchEngin extends SearchEngin {
 		while ((entry = zis.getNextEntry()) != null) {
 			// if(entry.isDirectory())
 			// continue;
-			ZipFile currNode = new ZipFile(entry);
+			ZipFile currNode = new ZipFile(entry, zis);
 			if (parentNode == null) {
 				ok = consum(currNode, parentNode);
 			} else {

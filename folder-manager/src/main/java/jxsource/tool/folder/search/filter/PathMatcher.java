@@ -4,13 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import jxsource.tool.folder.search.JFile;
 import jxsource.tool.folder.search.match.AnyMatch;
 import jxsource.tool.folder.search.match.Match;
-import jxsource.tool.folder.search.template.ZipSearchTemplateTest;
 
+/**
+ * A file path converts to String[] nodes
+ * Match requirements are given as Match[] matches.
+ * Each element of nodes compares with corresponding each element of matches
+ * to determine if the file is
+ * 1. NotMatch
+ * 2. Unknown -- if there is AnyMatch("**") in matches
+ * 3. Match
+ * 4. UnderMatch
+ * 5. OverMatch
+ * 
+ */
 public class PathMatcher {
 	public static final int NotMatch = -1;
 	public static final int Unknown = 0;
@@ -20,7 +32,7 @@ public class PathMatcher {
 	public static final int UnderMatch = 2;
 	// match and matches.length < nodes.length -- nodes contains all elements of matches
 	public static final int OverMatch = 3;
-	private Logger log = Logger.getLogger(PathMatcher.class);
+	private Logger log = LogManager.getLogger(PathMatcher.class);
 	private Match[] matches;
 	private String[] nodes;
 

@@ -2,7 +2,8 @@ package jxsource.tool.folder.search.template;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -17,7 +18,7 @@ import jxsource.tool.folder.search.filter.FullNameFilter;
 import jxsource.tool.folder.search.filter.NameFilter;
 
 public class ZipSearchTemplateTest {
-	private Logger log = Logger.getLogger(ZipSearchTemplateTest.class);
+	private Logger log = LogManager.getLogger(ZipSearchTemplateTest.class);
 	ZipReportAssert zipReportAssert;
 	
 	@Before
@@ -25,7 +26,6 @@ public class ZipSearchTemplateTest {
 		zipReportAssert = new ZipReportAssert();
 	}
 	@Test
-	@Ignore
 	public void builderTest() {
 		assertNotNull(ZipSearchTemplate.getBuilder());
 	}
@@ -46,6 +46,7 @@ public class ZipSearchTemplateTest {
 		zst.run();		
 	}
 	@Test
+	@Ignore
 	public void fullnameFilterTest() {
 		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
 				.setZipFilter(new FullNameFilter().add("Filter.class"))
@@ -54,6 +55,7 @@ public class ZipSearchTemplateTest {
 			zst.run();		
 	}
 	@Test
+	@Ignore
 	public void nameFilterTest() {
 		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
 				.setZipFilter(new NameFilter().add("Filter"))
@@ -62,6 +64,7 @@ public class ZipSearchTemplateTest {
 			zst.run();		
 	}
 	@Test
+	@Ignore
 	public void ignoreCaseNameFilterTest() {
 		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
 				.setZipFilter(new NameFilter().add("filter").setIgnoreCase(true))
@@ -70,6 +73,7 @@ public class ZipSearchTemplateTest {
 			zst.run();		
 	}	
 	@Test
+	@Ignore
 	public void likeNameFilterTest() {
 		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
 				.setZipFilter(new NameFilter().add("Template").setLike(true))
@@ -81,6 +85,7 @@ public class ZipSearchTemplateTest {
 		assertThat(zipReportAssert.getFound().size(), greaterThanOrEqualTo(3));
 	}	
 	@Test
+	@Ignore
 	public void pathFilterTest() {
 		ZipSearchTemplate zst = ZipSearchTemplate.getBuilder()
 				.setZipFilter(new NameFilter().add("Template").setLike(true))

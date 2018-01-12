@@ -16,9 +16,9 @@ public class MatcherFactory {
 	 * @param matchValue
 	 * @return Matcher<String> which matches any String in the converted String[]
 	 */
-	public static Matcher<String> createStringOrMatcher(String matchValue) {
+	public static Matcher<String> createIncludeStringMatcher(String matchValue) {
 		String[] array = Util.toArray(matchValue);
-		return new StringOrMatcher(array);
+		return new IncludeStringMatcher(array);
 	}
 
 	/**
@@ -27,9 +27,9 @@ public class MatcherFactory {
 	 * @param matchValue
 	 * @return Matcher<String> which matches no String in the converted String[]
 	 */
-	public static Matcher<String> createStringNoMatcher(String matchValue) {
+	public static Matcher<String> createExcludeStringMatcher(String matchValue) {
 		String[] array = Util.toArray(matchValue);
-		return new StringNoMatcher(array);
+		return new ExcludeStringMatcher(array);
 	}
 
 }

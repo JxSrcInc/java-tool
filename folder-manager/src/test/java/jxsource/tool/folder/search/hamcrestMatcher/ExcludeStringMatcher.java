@@ -7,11 +7,11 @@ import org.hamcrest.Description;
 
 import jxsource.tool.folder.search.JFile;
 
-public class StringNoMatcher extends BaseMatcher<String> {
+public class ExcludeStringMatcher extends BaseMatcher<String> {
 
 	private String[] matchArray;
 	
-	public StringNoMatcher(String[] matchValue) {
+	public ExcludeStringMatcher(String[] matchValue) {
 		this.matchArray = matchValue;
 	}
     public boolean matches(final Object item) {
@@ -19,7 +19,7 @@ public class StringNoMatcher extends BaseMatcher<String> {
     		return false;
     	}
     	for(String value: matchArray) {
-    		if(value.equals(item.toString())) {
+    		if(item.toString().contains(value)) {
     			return false;
     		}
     	}

@@ -18,7 +18,7 @@ import jxsource.tool.folder.search.filter.ExtFilter;
 import jxsource.tool.folder.search.filter.Filter;
 import jxsource.tool.folder.search.filter.PathFilter;
 import jxsource.tool.folder.search.hamcrestMatcher.MatcherFactory;
-import jxsource.tool.folder.search.hamcrestMatcher.StringOrMatcher;
+import jxsource.tool.folder.search.hamcrestMatcher.IncludeStringMatcher;
 
 public class SysSearchEnginTest {
 	private Matcher<JFile> hasExt(final String exts) {
@@ -49,25 +49,40 @@ public class SysSearchEnginTest {
 		engin.search(new File(root));
 		assertThat(root, is(ca.getUrl()));
 		List<JFile> files = ca.getFiles();
-		assertThat(files, everyItem(hasProperty("ext", MatcherFactory.createStringOrMatcher("java, class"))));
+		assertThat(files, everyItem(hasProperty("ext", MatcherFactory.createIncludeStringMatcher("java, class"))));
 		for(JFile f: files) {
 			assertThat(f, hasExt("java, class"));			
 		}
 	}
 	
 	@Test
-	public void orFilterTest() {
+	public void includeFilterTest() {
 		String root = ".";
 		SysSearchEngin engin = new SysSearchEngin();
 		CollectionAction ca = new CollectionAction();
 		ca.setUrl(root);
 		engin.addAction(ca);
-		engin.setFilter(new PathFilter("**/*.class,*.java"));
+		engin.setFilter(new PathFilter("**/src"));
 		engin.search(new File(root));
 		assertThat(root, is(ca.getUrl()));
 		List<JFile> files = ca.getFiles();
-		// every item has property "ext" which may have value "java" or "class"
-		assertThat(files, everyItem(hasProperty("ext", MatcherFactory.createStringOrMatcher("java, class"))));
+		assertThat(files, everyItem(hasProperty("path", MatcherFactory.createIncludeStringMatcher("src"))));
+	}
+
+	@Test
+	public void excludeFilterTest() {
+		String root = ".";
+		SysSearchEngin engin = new SysSearchEngin();
+		CollectionAction ca = new CollectionAction();
+		ca.setUrl(root);
+		engin.addAction(ca);
+		Filter filter = new PathFilter("**/src");
+		filter.setExclude(true);
+		engin.setFilter(filter);
+		engin.search(new File(root));
+		assertThat(root, is(ca.getUrl()));
+		List<JFile> files = ca.getFiles();
+		assertThat(files, everyItem(hasProperty("path", MatcherFactory.createExcludeStringMatcher("src"))));
 	}
 
 

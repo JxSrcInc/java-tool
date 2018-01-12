@@ -1,10 +1,15 @@
 package jxsource.tool.folder.search;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public abstract class JFile {
 	private String name;
 	private String path;
 	private long length;
 	private boolean directory;
+	public abstract InputStream getInputStream() throws IOException;
+	public abstract void close();
 	public String getName() {
 		return name;
 	}

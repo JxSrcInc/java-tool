@@ -3,4 +3,11 @@
   <groupId>jxsource.playground</groupId>
   <artifactId>playground</artifactId>
   <version>0.0.1</version>
+  <dependencies>
+  	<dependency>
+  		<groupId>jxsource.tool</groupId>
+  		<artifactId>util</artifactId>
+  		<version>0.0.1</version>
+  	</dependency>
+  </dependencies>
 </project>

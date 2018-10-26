@@ -197,13 +197,19 @@ public class ExpenseManager extends JFrame
     String strBusiness = "Business Expenses";
     String strRental = "Rental Expenses";
     String[] templateBusiness = new String[] {
-    		"Other Expenses",
-    		"Supplies",
-    		"Communication",
-    		"Meals & Entertainment",
-    		"Legal and Professional Fees",
-    		"Income"
-    };
+    		"purchase cost",
+    		"sale expense",
+    		"rent",
+    		"improvement for sale",
+    		"utility",
+    		"insurance",
+    		"property tax",
+    		"other tax",
+    		"professional (Termite)",
+    		"mortgage interest",
+    		"management fee",
+    		"repair"
+    		};
     String[] templateRental = new String[] {
     		"Advertising",
     		"Cleaning/Maintain",

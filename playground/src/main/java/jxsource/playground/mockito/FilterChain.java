@@ -1,5 +1,5 @@
 package jxsource.playground.mockito;
 
 public interface FilterChain {
-	public void doFilter(Response response);
+	public void doFilter(Request request, Response response);
 }

@@ -1,5 +1,5 @@
 package jxsource.playground.mockito;
 
-public class Response {
+public interface Response {
 
 }

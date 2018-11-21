@@ -1,0 +1,1 @@
+keytool -genkey -alias httpsproxy -keyalg RSA -dname "CN=https,OU=proxy,L=CL,ST=MD,C=US" -keypass httpsproxy -keystore httpsproxy.jks -storepass httpsproxy

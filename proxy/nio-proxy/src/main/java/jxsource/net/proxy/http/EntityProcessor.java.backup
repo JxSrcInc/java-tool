@@ -1,0 +1,225 @@
+package jxsource.net.proxy.http;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import jxsource.net.proxy.Constants;
+import jxsource.net.proxy.WorkThread;
+import jxsource.net.proxy.exception.ConnectStopException;
+import jxsource.net.proxy.exception.RemoteResponseException;
+import jxsource.net.proxy.exception.MessageHeaderException;
+import jxsource.utils.ByteArray;
+
+import org.apache.http.Header;
+import org.apache.http.HttpMessage;
+import org.apache.log4j.Logger;
+
+public class EntityProcessor {
+	final byte[] CRLF = ByteArray.CRLF;
+	final String From = "From";//Worker.Remote;
+	final String To = "To";//Worker.Local;
+	final int InfiniteWait = 0;
+	public final static String EntiryComplete = "Complete";
+	public final static String EntityTimeOut = "TimeOut";
+	public final static String EntityClosed = "Closed";
+	
+	private Logger logger = Logger.getLogger(EntityProcessor.class);
+	HttpHeaderUtils headerSearch = new HttpHeaderUtils();
+	Selector selector;
+	int capacity = HttpConstants.EntityBufferSize;
+	int waitTime;
+
+	void setEntityBufferSize(int capacity) {
+		this.capacity = capacity;
+	}
+	public EntityStatus processEntity(HttpMessage message, SocketChannel from, WrapSocketChannel to) throws IOException {
+		// use a new selector for each 
+		selector = Selector.open();		
+		headerSearch.setHttpMessage(message);
+		SelectionKey fromKey = from.register(selector, SelectionKey.OP_READ);
+		fromKey.attach(From);
+		SelectionKey toKey = to.register(selector, SelectionKey.OP_WRITE); 
+		toKey.attach(To);
+
+		long length = 0l;
+		if(message.containsHeader("Content-Length")) {
+			Header contentLength = message.getFirstHeader("Content-Length");
+			length = Long.parseLong(contentLength.getValue());
+		}
+		if(headerSearch.hasHeaderWithValue("Transfer-Encoding", "chunked")) {
+			long processed = procChunkedEntity(from, to);
+			return new EntityStatus(processed, EntiryComplete);
+		} else {
+			if(headerSearch.hasHeaderWithValue("Connection", "close")) {
+				if(length > 0) {
+					waitTime = HttpConstants.CloseEntityTimeOut;
+					long processed = procLength(length, from, to);
+					if(length != processed) {
+						System.err.println(getClass().getName()+": different bytes in closed connection: requested="+length+", processed="+processed);
+					}
+					return new EntityStatus(processed, EntityClosed, length );
+				} else {
+					long processed = procLength(Constants.InfiniteLong, from, to);
+					return new EntityStatus(processed, EntityClosed, Constants.InfiniteLong);
+				}
+			} else
+			if(length > 0) {
+				waitTime = InfiniteWait;
+				long processed = procLength(length, from, to);
+				if(length != processed) {
+					System.err.println(getClass().getName()+": length="+length+",processed="+processed);
+				}
+				return new EntityStatus(processed, EntiryComplete, length);
+			} else {
+				// server close connection to end transaction
+				// but without header Connection:close
+				waitTime = HttpConstants.CloseEntityTimeOut;
+				long processed = procLength(Constants.InfiniteLong, from, to);
+				return new EntityStatus(processed, EntityClosed, Constants.InfiniteLong );
+			}
+		}
+	}
+
+	public long procLength(long length, SocketChannel from, 
+			WrapSocketChannel to) throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(capacity);
+		long processed = 0;
+		boolean complete = false;
+		Queue<ByteBuffer> bufferQueue = new LinkedList<ByteBuffer>();
+		while (!complete) {
+			try {
+				int num = selector.select(waitTime);
+				Iterator<SelectionKey> selectionKeys = selector.selectedKeys()
+						.iterator();
+				while (selectionKeys.hasNext()) {
+					SelectionKey key = selectionKeys.next();
+					selectionKeys.remove();
+					if (key.isReadable() && From.equals(key.attachment())) {
+						from = (SocketChannel) key.channel();
+						int i = from.read(buffer);
+						if ((processed + i) <= length) {
+							processed += i;
+							bufferQueue.add(buffer);
+						}
+					} else 
+						if (key.isWritable() && To.equals(key.attachment())) {
+							if(!bufferQueue.isEmpty()) {
+								to.setSocketChannel((SocketChannel) key.channel());
+							buffer = bufferQueue.poll();
+							to.write(buffer);
+							buffer.clear();
+							if(processed == length) {
+								complete = true;
+//								key.cancel();
+								to.close();
+							}
+							}
+						}					
+				}
+			} catch(IOException e) {
+				throw new RemoteResponseException(e);
+			}
+		}
+		return processed;
+	}
+	
+	long procChunkedEntity(SocketChannel from, WrapSocketChannel to) {
+		
+		return 0l;
+	}
+
+	long copyChunk(SocketChannel from, WrapSocketChannel to) throws IOException {
+		ByteArray head = getEntityLine(from);
+		long length = getChunkSize(head);
+		ByteBuffer buffer = ByteBuffer.allocate(head.length());
+		buffer.put(head.getArray());
+		buffer.flip();
+		to.write(buffer);
+		procLength(length, from, to);
+		return length;
+	}
+
+	public ByteArray getEntityLine(SocketChannel socketChannel) throws IOException {
+		ByteBuffer buffer = ByteBuffer.allocate(1);
+		boolean validHeader = false;
+		ByteArray byteArray = new ByteArray();
+		// read one byte 
+		int i = 0;
+		try {
+		while((i=socketChannel.read(buffer)) != -1) {
+			if(i == 0) {
+				System.err.println(getClass().getName()+": read 0 byte from buffer");
+				continue;
+			}
+			buffer.flip();
+			byte data = buffer.get();
+			byteArray.append(data);
+			if(byteArray.length() < 2) {
+				// clear buffer for next read
+				buffer.clear();
+				continue;
+			}
+			// start to compare the last four bytes
+			int offset = byteArray.length()-2;
+			byte[] last4bytes = byteArray.subArray(offset);
+			boolean endHttpRequest = true;
+			for(int k=0; k<2; k++) {
+				if(last4bytes[k] != CRLF[k]) {
+					// the last four bytes are not CRLECRLE
+					endHttpRequest = false;
+					// break for loop
+					break;
+				}
+			}
+			if(!endHttpRequest) {
+				buffer.clear();
+			} else {
+				validHeader = true;
+				// break while loop
+				break;
+			}
+		}
+		if(validHeader) {
+			return byteArray;
+		} else {
+			if(byteArray.length() == 0) {
+				throw new MessageHeaderException("Zero bytes in socket channel when passing Http message header", socketChannel);
+			} else {
+				throw new MessageHeaderException("Invalid SocketChannel data for Message Header: "+byteArray, socketChannel);
+			}
+		}
+		} catch(IOException e) {
+			throw new MessageHeaderException("Error when processing Message Header. ", e, socketChannel);			
+		}
+	}
+
+	Long getChunkSize(ByteArray entityHead) {
+		if(entityHead.length() == 2) {
+			// See note in getEntityLine() method.
+			return 0L;
+		}
+		StringBuffer sb = new StringBuffer();
+		int size = entityHead.length()-2;
+		int index = entityHead.indexOf(';');
+		if(index != -1) {
+			size = index;
+		}
+		for(int i=0; i<size; i++) {
+			sb.append((char)entityHead.get(i));
+		}
+		if(sb.length() == 0) {
+			return 0L;
+		} else {
+			return Long.parseLong(sb.toString(),16);
+		}
+	}
+
+}

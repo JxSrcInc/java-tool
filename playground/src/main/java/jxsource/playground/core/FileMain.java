@@ -1,4 +1,4 @@
-package jxsource.playground.any;
+package jxsource.playground.core;
 
 import java.io.File;
 

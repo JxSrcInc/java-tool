@@ -1,5 +1,4 @@
 package jxsource.playground.generic;
 
-public interface AA extends A{
-	public void add(AA aa);
+public class AA extends A{
 }
